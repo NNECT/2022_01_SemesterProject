@@ -29,15 +29,20 @@ class Card:
         # 클래스 변수 정의
         self.move_speed: list[list[int]] = []
         self.sizeX_flipping: list[Optional[int]] = []
-        self.size: list[int] = CARD_SIZE
+        self.size: list[int] = CARD_SIZE.copy()
         self.is_flipping: bool = False
         self.is_flip_up: bool = True
 
     def set_destination(self, destination: list[int], frame: int = FPS, accel: int = 5) -> None:
         """
-        카드 전달 시의 속도를 계산하는 함수.
-        도착 위치를 [x, y] 형태로 입력받으며, 입력받은 frame 개수만큼 매 프레임 움직여야하는 거리를 [x, y] 형태로 move_speed 리스트에 저장한다.
+        카드 전달 시의 속도를 계산하는 함수.\n
+        매 프레임 움직여야하는 거리를 [x, y] 형태로 move_speed 리스트에 저장한다.\n
         각 프레임, 남은 거리의 1/accel 만큼 움직인다.
+
+        :param destination: 목표 위치. [x, y] 형태로 입력받는다.
+        :param frame: 움직임이 지속될 프레임 수. 다만 accel 값에 따라 frame 수를 다 채우지 못하고 멈출 수 있다. 기본값 상수 FPS.
+        :param accel: 움직임의 가속도. 높을 수록 느려진다. 기본값 5.
+        :return: None
         """
         # 각 좌표가 양의 방향인지 여부 확인
         is_positive_direction = [self.loc[xy] <= destination[xy] for xy in range(2)]
@@ -100,4 +105,4 @@ class Card:
 
     def coordinate(self) -> list[int]:
         """이미지 입력을 위한 좌표 입력"""
-        return [self.loc[xy] - (self.size[xy] // 2) for xy in range(2)]
+        return [self.loc[xy] + (CARD_SIZE[xy] - self.size[xy]) // 2 for xy in range(2)]
