@@ -9,10 +9,16 @@ screen_height: Final = 600  # 세로 크기
 FPS: Final = 30  # 화면 초당 프레임
 COLOR_BACKGROUND: Final = (10, 55, 17)  # 화면 배경색
 CARD_SIZE: Final = [50, 72]
-DECK_LOCATION: Final = [600, 100]
+DECK_LOCATION: Final = [700, 100]
+HAND_LOCATION: Final = [[300, 100],
+                        [240, 100+72],
+                        [360, 100+72]]
+DEALER_STAND_POINT = 17
+
 
 def now() -> int:
     return pygame.time.get_ticks()
+
 
 def can_next_event(next_event_time) -> bool:
     return pygame.time.get_ticks() > next_event_time

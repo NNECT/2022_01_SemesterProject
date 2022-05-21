@@ -9,8 +9,21 @@ class CardBundle:
     def number(self) -> int:
         return len(self.card_list)
 
-    def clear(self):
+    def clear(self, animation: bool = True) -> None:
+        """남은 카드를 모두 버림"""
         self.card_list = []
+        if animation:
+            pass
+
+    def add_card(self, *cards: Card) -> None:
+        """
+        입력된 카드들을 목록에 넣음
+
+        :param cards: 입력할 카드, 1개부터 여러개 넣을 수 있음
+        :return: None
+        """
+        for card in cards:
+            self.card_list.append(card)
 
     def pop_card(self, index: int = None) -> Optional[Card]:
         """
@@ -24,16 +37,17 @@ class CardBundle:
             return
         if index is None:
             index = self.number() - 1
-        return self.card_list.pop(0)
+        return self.card_list.pop(index)
 
 
 class Deck(CardBundle):
     def __init__(self, fill: bool = True):
         super().__init__()
+        self.loc = DECK_LOCATION.copy()
         if fill:
             self.fill()
 
-    def fill(self, decks: int = 1, clear: bool = False):
+    def fill(self, decks: int = 1, clear: bool = False) -> None:
         """
         덱을 새로운 카드로 채우고 섞음
 
@@ -49,33 +63,37 @@ class Deck(CardBundle):
                     self.card_list.append(Card(mark, number, DECK_LOCATION, False))
         self.shuffle()
 
-    def shuffle(self, animation: bool = True):
+    def shuffle(self, animation: bool = True) -> None:
         random.shuffle(self.card_list)
         if animation:
             pass
+
+    def lmages_blit(self, display: pygame.Surface) -> None:
+        pass
 
 
 class Hand(CardBundle):
     num_of_players = 0
 
-    def __init__(self):
+    def __init__(self, loc: list[int]):
         super().__init__()
         self.turn_number = self.num_of_players
         self.num_of_players += 1
 
-        self.loc = [None, None]
+        self.loc = loc.copy()
 
         # 게임 중 상황 변수
+        self.is_standed = False
         self.is_splited = False
 
     def is_dealer(self) -> bool:
         return self.turn_number == 0
 
-    def point(self):
+    def point(self) -> int:
         """패에 있는 카드의 점수를 계산한다. A가 있을 경우 21을 넘지 않는 가장 높은 값으로 계산된다."""
         result = 0
         count_ace = 0
-
+        # A는 11, J~K는 10으로 계산하여 합을 계산
         for number in [element.number for element in self.card_list]:
             if number == 1:
                 count_ace += 1
@@ -84,22 +102,40 @@ class Hand(CardBundle):
                 result += 10
             else:
                 result += number
-
+        # 21을 넘을 경우 21 이하가 되도록 A를 1로 계산할 수 있다.
         while count_ace > 0 and result > 21:
             count_ace -= 1
             result -= 10
 
         return result
 
+    def is_bust(self) -> bool:
+        return self.point() > 21
+
     def is_blackjack(self) -> bool:
         return self.number() == 2 and self.point() == 21 and not self.is_splited
 
-    def add_card(self, *cards: Card):
-        for card in cards:
-            self.card_list.append(card)
-
     def copy2split(self) -> Any:
+        """
+        스플릿시 핸드를 2개로 분리하는 메소드\n
+        마지막 카드를 뽑아 Hand 클래스를 생성한다.
+
+        :return: Card
+        """
         self.is_splited = True
         new_hand = Hand()
         new_hand.add_card(self.pop_card())
+        new_hand.is_splited = True
         return new_hand
+
+    def lmages_blit(self, display: pygame.Surface) -> None:
+        coordinate = self.loc.copy()
+        for card in self.card_list:
+            card.loc = coordinate.copy()
+            card.image_blit(display)
+            coordinate[0] += 10
+
+    def reset(self) -> None:
+        self.clear()
+        self.is_standed = False
+        self.is_splited = False
