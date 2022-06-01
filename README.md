@@ -46,6 +46,89 @@ _이 게임에서는 스플릿은 **한 번만** 할 수 있다._\
 
 ## 프로그램 구성
 
+* Card()
+  * 클래스변수
+    * .mark_names
+      * 문양에 따른 파일 이름 매개변수 목록
+    * .number_names
+      * 숫자에 따른 파일 이름 매개변수 목록
+    * .imagefiles
+      * 카드 종류에 따른 이미지 목록
+  * 변수
+    * .mark
+      * 문양
+    * .number
+      * 숫자
+    * .is_opened
+      * 앞뒷면 여부
+    * .direction
+      * 위치 좌표
+  * 메소드
+    * .\_\_init\_\_(self, mark, number, direction, is_opened = False)
+      * 초기화시 변수 입력
+    * .imagefile(self)
+      * 카드 종류에 따라 imagefiles 리스트에서 이미지를 출력
+* CardBundle()
+  * 변수
+    * .list
+      * 카드 목록
+    * .direction
+      * 기준 위치
+  * 메소드
+    * .\_\_init\_\_(self, *cards)
+      * 초기화시 카드 목록 입력
+    * .number(self)
+      * 카드 수 확인
+    * .add(self, *cards)
+      * 카드 목록 추가
+    * .pop(self, Card, index = None)
+      * 카드 1장 출력 (index가 없을 경우 마지막 카드)
+    * .reset(self)
+      * 카드 목록 모두 삭제
+    * .shuffle(self)
+      * 카드 순서 섞기
+    * .blit(self, display)
+      * 모든 카드 화면 출력
+* Deck(CardBundle)
+  * 메소드
+    * .\_\_init\_\_(self, *cards)
+      * 초기화시 카드 목록 입력
+    * .pop(self, Card, index = None, fill = True)
+      * 카드를 1장 출력하지만, 카드가 없을 경우 카드를 채운 후 재시도
+    * .fill(self, decks = 4, clear = False)
+      * decks 수만큼의 카드덱을 카드 목록에 추가
+    * .shuffle(self, animation = True)
+      * 카드 순서 섞으며 애니메이션 출력
+* Hand(CardBundle)
+  * 변수
+    * .sit
+      * 자리 (0 - 딜러, 1 - 플레이어, 2 - 플레이어(스플릿패))
+    * .is_splitted
+      * 스플릿 여부 확인
+    * .is_standed
+      * 스탠드 여부 확인
+  * 메소드
+    * .\_\_init\_\_(self, *cards)
+      * 초기화시 카드 목록 입력
+    * .point(self)
+      * 카드 점수 확인
+    * .is_busted(self)
+      * 버스트 여부 확인
+    * .is_blackjack(self)
+      * 블랙잭 여부 확인
+    * .set_direction(self)
+      * 카드 목록에 존재하는 카드들의 위치 재설정
+    * .reset(self)
+      * 카드 목록 모두 삭제하고 스플릿 여부, 스탠드 여부 False로 초기화
+* Trash(CardBundle)
+  * 메소드
+    * .\_\_init\_\_(self)
+* Event()
+  * 변수
+    * .list
+    * .followlist
+  * 메소드
+    * .\_\_init\_\_(self)
 
 ### 작업로그 
     2022-05-17  프로젝트 시작
@@ -65,3 +148,5 @@ _이 게임에서는 스플릿은 **한 번만** 할 수 있다._\
                 Hand.Split() 작성
     2022-05-21  CardBundle 클래스와 서브클래스들의 메소드 조정
                 class_out_of_hand.py(덱, 패 외 카드관리 클래스) 파일 생성
+    2022-05-26  프로그램 클래스 구조 정리
+    2022-06-01  README.md 프로그램 구조 정리
