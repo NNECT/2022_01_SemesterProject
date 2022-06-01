@@ -1,5 +1,4 @@
 import sys
-from module.class_card import *
 from module.class_cardbundle import *
 
 
