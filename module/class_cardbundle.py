@@ -1,5 +1,5 @@
+# 프로그램 내 모듈
 from module.class_card import *
-import random
 
 
 class CardBundle:
@@ -23,6 +23,7 @@ class CardBundle:
         :return: None
         """
         for card in cards:
+            print(f'log({pygame.time.get_ticks()}) Card "{Card.mark_names[card.mark]} {Card.number_names[card.number]}" Added')
             self.card_list.append(card)
 
     def pop_card(self, index: int = None) -> Optional[Card]:
@@ -35,8 +36,9 @@ class CardBundle:
         """
         if self.number() == 0:
             return
-        if index is None:
+        if index is None or index >= self.number():
             index = self.number() - 1
+        print(f'log({pygame.time.get_ticks()}) Card "{Card.mark_names[self.card_list[index].mark]} {Card.number_names[self.card_list[index].number]}" Poped')
         return self.card_list.pop(index)
 
 
@@ -46,6 +48,14 @@ class Deck(CardBundle):
         self.loc = DECK_LOCATION.copy()
         if fill:
             self.fill()
+
+    def pop_card(self, index: int = None) -> Optional[Card]:
+        if self.number() == 0:
+            self.fill()
+        if index is None or index >= self.number():
+            index = self.number() - 1
+        print(f'log({pygame.time.get_ticks()}) Card "{Card.mark_names[self.card_list[index].mark]} {Card.number_names[self.card_list[index].number]}" Poped')
+        return self.card_list.pop(index)
 
     def fill(self, decks: int = 1, clear: bool = False) -> None:
         """
@@ -60,7 +70,7 @@ class Deck(CardBundle):
         for n in range(decks):
             for mark in range(1, 4 + 1):
                 for number in range(1, 13 + 1):
-                    self.card_list.append(Card(mark, number, DECK_LOCATION, False))
+                    self.card_list.append(Card(mark, number, *DECK_LOCATION, False))
         self.shuffle()
 
     def shuffle(self, animation: bool = True) -> None:
@@ -68,26 +78,28 @@ class Deck(CardBundle):
         if animation:
             pass
 
-    def lmages_blit(self, display: pygame.Surface) -> None:
-        pass
+    def images_blit(self, display: pygame.Surface) -> None:
+        coordinate = self.loc.copy()
+        temp = 0
+        for card in self.card_list:
+            card.loc = coordinate.copy()
+            card.image_blit(display)
+            temp += 1
+            if temp == 3:
+                coordinate[1] -= 1
+                temp = 0
 
 
 class Hand(CardBundle):
-    num_of_players = 0
-
-    def __init__(self, loc: list[int]):
+    def __init__(self, x: int, y: int):
         super().__init__()
-        self.turn_number = self.num_of_players
-        self.num_of_players += 1
 
-        self.loc = loc.copy()
+        self.loc = [x, y]
 
         # 게임 중 상황 변수
         self.is_standed = False
         self.is_splited = False
-
-    def is_dealer(self) -> bool:
-        return self.turn_number == 0
+        self.is_doubledown = False
 
     def point(self) -> int:
         """패에 있는 카드의 점수를 계산한다. A가 있을 경우 21을 넘지 않는 가장 높은 값으로 계산된다."""
@@ -123,12 +135,12 @@ class Hand(CardBundle):
         :return: Card
         """
         self.is_splited = True
-        new_hand = Hand()
+        new_hand = Hand(self.loc[0] + 10, self.loc[1])
         new_hand.add_card(self.pop_card())
         new_hand.is_splited = True
         return new_hand
 
-    def lmages_blit(self, display: pygame.Surface) -> None:
+    def images_blit(self, display: pygame.Surface) -> None:
         coordinate = self.loc.copy()
         for card in self.card_list:
             card.loc = coordinate.copy()
@@ -139,3 +151,4 @@ class Hand(CardBundle):
         self.clear()
         self.is_standed = False
         self.is_splited = False
+        self.is_doubledown = False
