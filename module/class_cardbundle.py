@@ -1,5 +1,8 @@
 # 프로그램 내 모듈
+import pygame
+
 from module.class_card import *
+from module.class_chip import *
 
 
 class CardBundle:
@@ -12,8 +15,6 @@ class CardBundle:
     def clear(self, animation: bool = True) -> None:
         """남은 카드를 모두 버림"""
         self.card_list = []
-        if animation:
-            pass
 
     def add_card(self, *cards: Card) -> None:
         """
@@ -23,7 +24,7 @@ class CardBundle:
         :return: None
         """
         for card in cards:
-            print(f'log({pygame.time.get_ticks()}) Card "{Card.mark_names[card.mark]} {Card.number_names[card.number]}" Added')
+            # print(f'log({pygame.time.get_ticks()}) Card "{Card.mark_names[card.mark]} {Card.number_names[card.number]}" Added')
             self.card_list.append(card)
 
     def pop_card(self, index: int = None) -> Optional[Card]:
@@ -38,14 +39,19 @@ class CardBundle:
             return
         if index is None or index >= self.number():
             index = self.number() - 1
-        print(f'log({pygame.time.get_ticks()}) Card "{Card.mark_names[self.card_list[index].mark]} {Card.number_names[self.card_list[index].number]}" Poped')
+        # print(f'log({pygame.time.get_ticks()}) Card "{Card.mark_names[self.card_list[index].mark]} {Card.number_names[self.card_list[index].number]}" Poped')
         return self.card_list.pop(index)
 
 
 class Deck(CardBundle):
-    def __init__(self, fill: bool = True):
+    deck_base_image = pygame.image.load('./card_images/card_base.png')
+
+    def __init__(self, frame, fill: bool = True):
         super().__init__()
         self.loc = DECK_LOCATION.copy()
+        self.FramePerSec = frame
+        self.filling = False
+        self.shffling = False
         if fill:
             self.fill()
 
@@ -55,39 +61,69 @@ class Deck(CardBundle):
         if index is None or index >= self.number():
             index = self.number() - 1
         print(f'log({pygame.time.get_ticks()}) Card "{Card.mark_names[self.card_list[index].mark]} {Card.number_names[self.card_list[index].number]}" Poped')
-        return self.card_list.pop(index)
+        card = self.card_list.pop(index)
+        card.loc[1] += 20
+        return card
 
-    def fill(self, decks: int = 1, clear: bool = False) -> None:
+    def fill(self, decks: int = 4, animation: bool = True) -> None:
         """
         덱을 새로운 카드로 채우고 섞음
 
         :param decks: 채울 덱의 수. 1덱은 52장이며 입력하지 않을 경우 기본값 1.
         :param clear: 새로운 카드를 넣기 전에 덱을 비울 것인지 확인. 기본값 False.
+        :param animation: 애니메이션 출력 여부
         :return: None
         """
-        if clear:
-            self.clear()
+        self.filling = True
+        i, temp = 0, 0
         for n in range(decks):
             for mark in range(1, 4 + 1):
                 for number in range(1, 13 + 1):
-                    self.card_list.append(Card(mark, number, *DECK_LOCATION, False))
+                    self.card_list.append(Card(mark, number, *[DECK_LOCATION[0] - i, -93], False))
+                    temp += 1
+                    if temp == 3:
+                        i += 1
+                        temp = 0
+        del i, temp
+        if animation:
+            direction = [1 if DECK_LOCATION[xy] >= self.card_list[0].loc[xy] else -1 for xy in range(2)]
+            while True:
+                self.FramePerSec.tick(FPS)
+
+                displace = [abs(DECK_LOCATION[xy] - self.card_list[0].loc[xy]) for xy in range(2)]
+                if displace == [0, 0]:
+                    break
+
+                for xy in range(2):
+                    if displace[xy] == 0:
+                        pass
+                    elif displace[xy] < 4:
+                        for card in self.card_list:
+                            card.loc[xy] += displace[xy] * direction[xy]
+                    else:
+                        for card in self.card_list:
+                            card.loc[xy] += displace[xy] // 4 * direction[xy]
+        self.filling = False
         self.shuffle()
 
-    def shuffle(self, animation: bool = True) -> None:
+    def shuffle(self) -> None:
         random.shuffle(self.card_list)
-        if animation:
-            pass
 
     def images_blit(self, display: pygame.Surface) -> None:
-        coordinate = self.loc.copy()
-        temp = 0
-        for card in self.card_list:
-            card.loc = coordinate.copy()
-            card.image_blit(display)
-            temp += 1
-            if temp == 3:
-                coordinate[1] -= 1
-                temp = 0
+        display.blit(self.deck_base_image, self.loc)
+        if not self.filling and not self.shffling:
+            coordinate = self.loc.copy()
+            temp = 0
+            for card in self.card_list:
+                card.loc = coordinate.copy()
+                card.image_blit(display, deck=True)
+                temp += 1
+                if temp == 3:
+                    coordinate[0] -= 1
+                    temp = 0
+        else:
+            for card in self.card_list:
+                card.image_blit(display, deck=True)
 
 
 class Hand(CardBundle):
@@ -100,6 +136,10 @@ class Hand(CardBundle):
         self.is_standed = False
         self.is_splited = False
         self.is_doubledown = False
+        self.is_surrendered = False
+
+        self.bet = 0
+        self.insurance_bet = 0
 
     def point(self) -> int:
         """패에 있는 카드의 점수를 계산한다. A가 있을 경우 21을 넘지 않는 가장 높은 값으로 계산된다."""
@@ -127,18 +167,11 @@ class Hand(CardBundle):
     def is_blackjack(self) -> bool:
         return self.number() == 2 and self.point() == 21 and not self.is_splited
 
-    def copy2split(self) -> Any:
-        """
-        스플릿시 핸드를 2개로 분리하는 메소드\n
-        마지막 카드를 뽑아 Hand 클래스를 생성한다.
+    def can_split(self) -> bool:
+        return self.number() == 2 and self.card_list[0].number == self.card_list[1].number
 
-        :return: Card
-        """
-        self.is_splited = True
-        new_hand = Hand(self.loc[0] + 10, self.loc[1])
-        new_hand.add_card(self.pop_card())
-        new_hand.is_splited = True
-        return new_hand
+    def next_loc(self) -> list:
+        return [self.loc[0] + (self.number() * 10), self.loc[1]]
 
     def images_blit(self, display: pygame.Surface) -> None:
         coordinate = self.loc.copy()
@@ -147,8 +180,18 @@ class Hand(CardBundle):
             card.image_blit(display)
             coordinate[0] += 10
 
+    def chip_blit(self, display: pygame.Surface) -> None:
+        Chip.chip_blit(self.bet, display, (self.loc[0] + 10, self.loc[1] + 80))
+
+    def insurance_blit(self, display: pygame.Surface) -> None:
+        if self.insurance_bet > 0:
+            Chip.chip_blit(self.insurance_bet, display, (self.loc[0] + 10, self.loc[1] - 48))
+
     def reset(self) -> None:
         self.clear()
         self.is_standed = False
         self.is_splited = False
         self.is_doubledown = False
+        self.is_surrendered = False
+        self.bet = 0
+        self.insurance_bet = 0

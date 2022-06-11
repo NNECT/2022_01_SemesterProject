@@ -25,7 +25,7 @@ Python 3.10 Anaconda 인터프리터를 통해 제작되었으며, pygame 패키
 `버스트(Bust)` : 숫자의 합이 21점을 넘으면 즉시 패배한다.\
 `푸시(Push)` : 플레이어와 딜러가 무승부일 때, 베팅한 금액을 돌려받는다.\
 `블랙잭(Blackjack)` : 첫 패 2장이 **10**, **J**, **Q**, **K** 중 1장과 **A** 1장으로 21점을 만들 경우 같은 21점보다 높은 점수를 가진 것으로 취급한다.
-블랙잭으로 게임에서 이겼을 때, 베팅액의 0.5배의 금액을 더 받는다.\
+블랙잭으로 게임에서 이겼을 때, 베팅액의 0.5배의 금액을 더 받는다.
 
 #### 특수 룰 
 `서렌더(Surrender)` : 자신의 차례에 게임을 포기하고 베팅한 금액의 절반을 돌려받을 수 있다.\
@@ -46,89 +46,40 @@ _이 게임에서는 스플릿은 **한 번만** 할 수 있다._\
 
 ## 프로그램 구성
 
-* Card()
-  * 클래스변수
-    * .mark_names
-      * 문양에 따른 파일 이름 매개변수 목록
-    * .number_names
-      * 숫자에 따른 파일 이름 매개변수 목록
-    * .imagefiles
-      * 카드 종류에 따른 이미지 목록
-  * 변수
-    * .mark
-      * 문양
-    * .number
-      * 숫자
-    * .is_opened
-      * 앞뒷면 여부
-    * .direction
-      * 위치 좌표
-  * 메소드
-    * .\_\_init\_\_(self, mark, number, direction, is_opened = False)
-      * 초기화시 변수 입력
-    * .imagefile(self)
-      * 카드 종류에 따라 imagefiles 리스트에서 이미지를 출력
-* CardBundle()
-  * 변수
-    * .list
-      * 카드 목록
-    * .direction
-      * 기준 위치
-  * 메소드
-    * .\_\_init\_\_(self, *cards)
-      * 초기화시 카드 목록 입력
-    * .number(self)
-      * 카드 수 확인
-    * .add(self, *cards)
-      * 카드 목록 추가
-    * .pop(self, Card, index = None)
-      * 카드 1장 출력 (index가 없을 경우 마지막 카드)
-    * .reset(self)
-      * 카드 목록 모두 삭제
-    * .shuffle(self)
-      * 카드 순서 섞기
-    * .blit(self, display)
-      * 모든 카드 화면 출력
-* Deck(CardBundle)
-  * 메소드
-    * .\_\_init\_\_(self, *cards)
-      * 초기화시 카드 목록 입력
-    * .pop(self, Card, index = None, fill = True)
-      * 카드를 1장 출력하지만, 카드가 없을 경우 카드를 채운 후 재시도
-    * .fill(self, decks = 4, clear = False)
-      * decks 수만큼의 카드덱을 카드 목록에 추가
-    * .shuffle(self, animation = True)
-      * 카드 순서 섞으며 애니메이션 출력
-* Hand(CardBundle)
-  * 변수
-    * .sit
-      * 자리 (0 - 딜러, 1 - 플레이어, 2 - 플레이어(스플릿패))
-    * .is_splitted
-      * 스플릿 여부 확인
-    * .is_standed
-      * 스탠드 여부 확인
-  * 메소드
-    * .\_\_init\_\_(self, *cards)
-      * 초기화시 카드 목록 입력
-    * .point(self)
-      * 카드 점수 확인
-    * .is_busted(self)
-      * 버스트 여부 확인
-    * .is_blackjack(self)
-      * 블랙잭 여부 확인
-    * .set_direction(self)
-      * 카드 목록에 존재하는 카드들의 위치 재설정
-    * .reset(self)
-      * 카드 목록 모두 삭제하고 스플릿 여부, 스탠드 여부 False로 초기화
-* Trash(CardBundle)
-  * 메소드
-    * .\_\_init\_\_(self)
-* Event()
-  * 변수
-    * .list
-    * .followlist
-  * 메소드
-    * .\_\_init\_\_(self)
+### 파일 구성
+* **main.py**
+  * 메인 코드. BlackjackMain 클래스 및 관련 메소드들로 구성됨.
+  * import class_cardbundle, class_button
+* **module**
+  * **config.py**
+    * 상수 및 기본 세팅값들을 정의하는 모듈. 패키지들도 여기에서 모아서 import 하도록 구성.
+  * **class_chip.py**
+    * Chip 클래스와 정적 메소드들을 정의하는 모듈.
+    * import config
+  * **class_card.py**
+    * Card 클래스를 정의하는 모듈.
+    * import config
+  * **class_cardbundle.py**
+    * CardBundle, Deck, Hand 클래스를 정의하는 모듈.
+    * import class_card, class_chip
+  * **class_button.py**
+    * Button 클래스를 정의하는 모듈.
+    * import config
+* **card_images**
+  * 카드 이미지 폴더.
+* **button_images**
+  * 버튼 이미지 폴더.
+* **other_images**
+  * 칩, 게임오버 이미지 폴더.
+* **README.md**
+
+### 사용된 패키지 목록
+* pygame
+* thread
+* sys
+* random
+* time
+* typing
 
 ### 작업로그 
     2022-05-17  프로젝트 시작

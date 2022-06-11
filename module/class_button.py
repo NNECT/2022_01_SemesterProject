@@ -4,7 +4,7 @@ from module.config import *
 
 class Button:
     imagefiles: list[list[Any]] = []
-    kinds: dict = {0: 'none', HIT: 'hit', STAND: 'stand', SURRENDER: 'surrender', DOUBLEDOWN: 'doubledown', INSURANCE: 'insurance', SPLIT: 'split', EVENMONEY: 'evenmoney'}
+    kinds: dict = {0: 'none', HIT: 'hit', STAND: 'stand', SURRENDER: 'surrender', DOUBLEDOWN: 'doubledown', SPLIT: 'split', INSURANCE: 'insurance', EVENMONEY: 'evenmoney'}
     status: dict = {'off': 0, 'on': 1, 'focus': 2}
 
     def __init__(self, kind: int, x: int, y: int, on: bool = True):
@@ -30,12 +30,12 @@ class Button:
             status = 0
         elif status is None:
             status = 1
-        if 0 <= status <= 3:
+        if 0 <= status < 3:
             display.blit(self.imagefile(status), self.loc)
 
     def imagefile(self, status: int) -> Optional[pygame.Surface]:
         """이미지 파일 참조"""
-        if 0 <= status <= 3:
+        if 0 <= status < 3:
             if 0 < self.kind <= 7:
                 return self.imagefiles[self.kind][status]
             else:

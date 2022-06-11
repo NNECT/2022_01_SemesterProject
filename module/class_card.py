@@ -10,7 +10,7 @@ class Card:
     def __init__(self, mark: int, number: int, x: int, y: int, opened: bool = True):
         # 이미지 초기화
         if len(self.imagefiles) == 0:
-            self.imagefiles = [[pygame.image.load('./card_images/back_of_card.png')]]
+            self.imagefiles = [[pygame.image.load('./card_images/back_of_card.png'), pygame.image.load('./card_images/back_of_card_2.png')]]
             for i in range(1, 4 + 1):
                 self.imagefiles.append(
                     [pygame.image.load(f'./card_images/{self.number_names[j]}_of_{self.mark_names[i]}.png')
@@ -23,9 +23,12 @@ class Card:
         self.opened: bool = opened
         self.surface = pygame.Surface(CARD_SIZE)
 
-    def image_blit(self, display: pygame.Surface) -> None:
+    def image_blit(self, display: pygame.Surface, deck=False) -> None:
         """이미지 출력"""
-        display.blit(self.imagefile(), self.loc)
+        if not deck:
+            display.blit(self.imagefile(), self.loc)
+        else:
+            display.blit(self.imagefiles[0][1], self.loc)
 
     def imagefile(self) -> pygame.Surface:
         """이미지 파일 참조"""
