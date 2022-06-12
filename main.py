@@ -319,7 +319,7 @@ class BlackjackMain:
                         button.is_on = True
                 elif button.kind == STAND:
                     button.is_on = True
-                    if self.hands[0].card_list[1].opened and self.calc_win(self.hands[num]) < 0:
+                    if self.hands[0].is_standed and self.hands[0].card_list[1].opened and self.calc_win(self.hands[num]) < 0:
                         button.is_on = False
                 elif button.kind == SURRENDER:
                     if not self.hands[0].card_list[1].opened and self.hands[0].card_list[0].number == 1:
@@ -336,6 +336,11 @@ class BlackjackMain:
         self.button_standby = True
         while True:
             self.FramePerSec.tick(FPS)
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+
             if not self.button_standby:
                 if self.clicked_button.kind == INSURANCE:
                     for i in range(DEAL_MONEY // 2):
@@ -363,7 +368,6 @@ class BlackjackMain:
             self.text_blit("Blackjack", self.hands[0])
 
         for hand in self.hands[1:]:
-            win = 0
             prize = 0
 
             if self.is_insuranced:
