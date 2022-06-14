@@ -106,3 +106,7 @@ _이 게임에서는 스플릿은 **한 번만** 할 수 있다._\
     2022-06-09  버튼 및 텍스트 출력 구현
     2022-06-11  프로그램 완성
     2022-06-12  README.md 작성 및 일부 오류(stand 조건 오류) 수정
+
+## 자료 출처
+* 카드 이미지 : https://code.google.com/archive/p/vector-playing-cards
+* 버튼 이미지 : https://www.imagefu.com/create/button
